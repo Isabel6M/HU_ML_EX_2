@@ -14,17 +14,24 @@ from torch.nn.utils.rnn import pad_sequence
 from tqdm import tqdm
 
 Tensor = torch.Tensor
+class dataloader:
+    def __init__(self, dataset: data_dir, batchsize: int) -> None:
+        self.date = data_dir
+
 
 class BaseDataIterator:
-    def __init__(self, dataset: data_dir, batchsize: int):
-        self.data = get_eeg()
-        data = arff.loadarff(datapath)
+    def __init__(self, datapath):
+        self.data = datapath
+       
         self.dataset = dataset
         self.batchsize = batchsize
-
+ data = arff.loadarff(datapath)
     def __len__(self) -> int:
         # the lenght is the amount of batches
         return int(len(self.dataset) / self.batchsize)
+
+    def proces_data(self)
+     data = arff.loadarff(datapath)
 
     def __iter__(self) -> BaseDataIterator:
         # initialize index
