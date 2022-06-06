@@ -37,6 +37,7 @@ def get_eeg(data_dir: Path= "../../data/raw") -> Path:
     datapath = Path(datapath)
     logger.info(f"Data is downloaded to {datapath}.")
     data = arff.loadarff(datapath)
+    
     return data
 
 
