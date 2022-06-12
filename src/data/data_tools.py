@@ -74,7 +74,7 @@ class BaseDataIterator_wind:
 
     def __init__(self, dataset: BaseDataset, window_size: int) -> None:
         self.dataset = dataset
-        self.ws = window_size
+        self.window_size = window_size
         self.data = self.window()
 
     def __len__(self) -> int:
@@ -82,18 +82,18 @@ class BaseDataIterator_wind:
 
     def window(self) -> None:
         data = self.dataset
-        list2 = []
-        ws = self.ws
+        list_window = []
+        window_size = self.window_size
         for i in range(len(self.dataset)):
             n_window = len(data[i][1])
-            time = torch.arange(0, ws).reshape(1, -1)
+            time = torch.arange(0, window_size).reshape(1, -1)
             window = torch.arange(0, n_window).reshape(-1, 1)
             idx = time + window
-            idx = idx - ws + 1
-            test = data[i][1][idx]
-            test2 = (data[i][0], test)
-            list2.append(test2)
-        return list2
+            idx = idx - window_size + 1
+            windows = data[i][1][idx]
+            window_data = (data[i][0], windows)
+            list_window.append(window_data)
+        return list_window
 
     def __getitem__(self, idx: int) -> Tuple:
         return self.data[idx]
@@ -109,7 +109,7 @@ class BaseDataIterator_pad:
 
     def __init__(self, dataset: BaseDataset, window_size: int) -> None:
         self.dataset = dataset
-        self.ws = window_size
+        self.window_size = window_size
         self.data = self.padding()
 
     def __len__(self) -> int:
@@ -117,22 +117,22 @@ class BaseDataIterator_pad:
 
     def padding(self) -> None:
         data = self.dataset
-        window_size = self.ws
-        list_padded = []
+        window_size = self.window_size
+        list_padding = []
         for i in range(len(data)):
-            len_chunck = len(data[i][1])
-            diff = len_chunck % window_size
-            pad_value = window_size - diff
+            seq_len = len(data[i][1])
+            diff = seq_len % window_size
+            pading_num = window_size - diff
             if diff != 0:
                 new_data = F.pad(
-                    input=data[i][1], pad=(0, 0, 0, pad_value), mode="constant", value=0
+                    input=data[i][1], pad=(0, 0, 0, pading_num), mode="constant", value=0
                 )
-                new_data2 = (data[i][0], new_data)
-                list_padded.append(new_data2)
+                new_data_comb = (data[i][0], new_data)
+                list_padding.append(new_data_comb)
             else:
-                new_data3 = (data[i][0], data[i][1])
-                list_padded.append(new_data3)
-        return list_padded
+                old_data = (data[i][0], data[i][1])
+                list_padding.append(old_data)
+        return list_padding
 
     def __getitem__(self, idx: int) -> Tuple:
         return self.data[idx]
@@ -157,38 +157,38 @@ class BaseDataIterator_pad_wind:
     def padding_wind(self) -> None:
         data = self.dataset
         window_size = self.ws
-        list2 = []
-        list_padded = []
+        list_window_pad = []
+        list_padding = []
         for i in range(24):
-            len_chunck = len(data[i][1])
-            diff = len_chunck % window_size
+            seq_len = len(data[i][1])
+            diff = seq_len % window_size
             pad_value = window_size - diff
             if diff != 0:
                 new_data = F.pad(
                     input=data[i][1], pad=(0, 0, 0, pad_value), mode="constant", value=0
                 )
                 new_data2 = (data[i][0], new_data)
-                list_padded.append(new_data2)
-                n_window = len(list_padded[i][1])
+                list_padding.append(new_data2)
+                n_window = len(list_padding[i][1])
                 time = torch.arange(0, window_size).reshape(1, -1)
                 window = torch.arange(0, n_window).reshape(-1, 1)
                 idx = time + window
                 idx = idx - window_size + 1
-                test = list_padded[i][1][idx]
-                test2 = (list_padded[i][0], test)
-                list2.append(test2)
+                windows = list_padding[i][1][idx]
+                window_data = (list_padding[i][0], windows)
+                list_window_pad.append(window_data)
             else:
-                new_data3 = (data[i][0], data[i][1])
-                list_padded.append(new_data3)
-                n_window = len(list_padded[i][1])
+                old_data = (data[i][0], data[i][1])
+                list_padding.append(old_data)
+                n_window = len(list_padding[i][1])
                 time = torch.arange(0, window_size).reshape(1, -1)
                 window = torch.arange(0, n_window).reshape(-1, 1)
                 idx = time + window
                 idx = idx - window_size + 1
-                test = list_padded[i][1][idx]
-                test2 = (list_padded[i][0], test)
-                list2.append(test2)
-        return list2
+                windows = list_padding[i][1][idx]
+                window_data = (list_padding[i][0], windows)
+                list_window_pad.append(window_data)
+        return list_window_pad
 
     def __getitem__(self, idx: int) -> Tuple:
         return self.data[idx]
