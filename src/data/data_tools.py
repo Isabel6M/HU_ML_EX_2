@@ -120,13 +120,12 @@ class BaseDataIterator_pad:
         list_padding = []
         for i in range(len(data)):
             seq_len = len(data[i][1])
-            diff = seq_len % window_size
-            pading_num = window_size - diff
+            diff = window_size -seq_len 
             if diff <= 0:
                 old_data = (data[i][0], data[i][1])
                 list_padding.append(old_data)
             else:
-                new_data = F.pad(input=data[i][1], pad=(0, 0, 0, pading_num), mode="constant", value=0)
+                new_data = F.pad(input=data[i][1], pad=(0, 0, 0, diff), mode="constant", value=0)
                 new_data_comb = (data[i][0], new_data)
                 list_padding.append(new_data_comb)
         return list_padding
@@ -143,12 +142,12 @@ class BaseDataIterator_pad_wind:
 
     """
 
-    def __init__(self, dataset: BaseDataset, window_size: int, batchsize: int) -> None:
+    def __init__(self, dataset: BaseDataset, window_size: int) -> None:
         self.dataset = dataset
         self.ws = window_size
         self.data = self.padding()
         self.data2 = self.window()
-        self.batchsize = batchsize
+
 
     def __len__(self) -> int:
         return len(self.data2)
@@ -159,10 +158,9 @@ class BaseDataIterator_pad_wind:
         list_padding = []
         for i in range(len(data)):
             seq_len = len(data[i][1])
-            diff = seq_len % window_size
-            pading_num = window_size - diff
+            diff = window_size -seq_len 
             if diff > 0:
-                new_data = F.pad(input=data[i][1], pad=(0, 0, 0, pading_num), mode="constant", value=0)
+                new_data = F.pad(input=data[i][1], pad=(0, 0, 0, diff), mode="constant", value=0)
                 new_data_comb = (data[i][0], new_data)
                 list_padding.append(new_data_comb)
             else:
@@ -222,24 +220,3 @@ class BaseDataIterator_pad_wind:
     def __getitem__(self, idx: int) -> Tuple:
         return self.data2[idx]
 
-    def __iter__(self) -> BaseDataIterator_pad_wind:
-        self.index = 0
-        self.index_list = torch.randperm(len(self.data2))
-        return self
-
-    def batchloop(self) -> Tuple[List, List]:
-        X = []  # noqa N806
-        Y = []  # noqa N806
-        for _ in range(self.batchsize):
-            x, y = self.data2[int(self.index_list[self.index])]
-            X.append(x)
-            Y.append(y)
-            self.index += 1
-        return X, Y
-
-    def __next__(self) -> Tuple[Tensor, Tensor]:
-        if self.index <= (len(self.data2) - self.batchsize):
-            X, Y = self.batchloop()  # noqa N806
-            return torch.tensor(X), torch.tensor(Y)
-        else:
-            raise StopIteration
